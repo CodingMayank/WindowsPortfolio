@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-export type WindowId = 'about' | 'projects' | 'resume' | 'contact' | 'calculator' | 'notepad' | 'settings' | 'game';
+export type WindowId = 'about' | 'projects' | 'resume' | 'contact' | 'calculator' | 'notepad' | 'settings' | 'game' | 'snake';
 
 export interface WindowState {
   id: WindowId;
@@ -20,6 +20,7 @@ const initialWindows: Record<WindowId, WindowState> = {
   notepad: { id: 'notepad', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, position: { x: 350, y: 120 } },
   settings: { id: 'settings', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, position: { x: 180, y: 90 } },
   game: { id: 'game', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, position: { x: 280, y: 80 } },
+  snake: { id: 'snake', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, position: { x: 320, y: 100 } },
 };
 
 export function useWindowManager() {

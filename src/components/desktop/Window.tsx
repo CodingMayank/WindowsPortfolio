@@ -16,6 +16,7 @@ interface WindowProps {
   onFocus: () => void;
   onPositionChange: (pos: { x: number; y: number }) => void;
   children: React.ReactNode;
+  isMobile?: boolean;
 }
 
 export function Window({
@@ -32,6 +33,7 @@ export function Window({
   onFocus,
   onPositionChange,
   children,
+  isMobile,
 }: WindowProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -39,7 +41,16 @@ export function Window({
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isAnimatingIn, setIsAnimatingIn] = useState(true);
   const windowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsAnimatingIn(true);
+      const timer = setTimeout(() => setIsAnimatingIn(false), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isDragging && !isResizing) return;
@@ -93,7 +104,7 @@ export function Window({
   }, [isDragging, isResizing, dragOffset, resizeDirection, onPositionChange, position, size]);
 
   const handleTitleBarMouseDown = (e: React.MouseEvent) => {
-    if (isMaximized) return;
+    if (isMaximized || isMobile) return;
     onFocus();
     setIsDragging(true);
     setDragOffset({
@@ -103,6 +114,7 @@ export function Window({
   };
 
   const handleResizeMouseDown = (e: React.MouseEvent, direction: string) => {
+    if (isMobile) return;
     e.stopPropagation();
     e.preventDefault();
     onFocus();
@@ -130,6 +142,8 @@ export function Window({
 
   if (!isOpen || isMinimized) return null;
 
+  const shouldBeMaximized = isMaximized || isMobile;
+
   return (
     <div
       ref={windowRef}
@@ -138,13 +152,14 @@ export function Window({
         'bg-background backdrop-blur-xl',
         'border border-border/50',
         'shadow-2xl shadow-black/20',
-        'transition-shadow duration-300 ease-out',
-        isMaximized ? 'rounded-none' : 'rounded-xl',
-        isHovered && !isDragging && 'shadow-[0_25px_60px_-12px_rgba(0,0,0,0.35)]'
+        'transition-all duration-200 ease-out',
+        shouldBeMaximized ? 'rounded-none' : 'rounded-xl',
+        isHovered && !isDragging && 'shadow-[0_25px_60px_-12px_rgba(0,0,0,0.35)]',
+        isAnimatingIn && 'animate-scale-in'
       )}
       style={
-        isMaximized
-          ? { zIndex, top: 0, left: 0, width: '100vw', height: 'calc(100vh - 48px)' }
+        shouldBeMaximized
+          ? { zIndex, top: 0, left: 0, width: '100vw', height: 'calc(100dvh - 48px)' }
           : { zIndex, left: position.x, top: position.y, width: size.width, height: size.height }
       }
       onMouseDown={onFocus}
@@ -154,73 +169,77 @@ export function Window({
       {/* Title Bar */}
       <div
         className={cn(
-          'flex items-center justify-between px-4 py-2.5 shrink-0',
+          'flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 shrink-0',
           'bg-gradient-to-b from-muted/80 to-muted/40',
           'border-b border-border/30',
-          !isMaximized && 'cursor-move'
+          !shouldBeMaximized && 'cursor-move'
         )}
         onMouseDown={(e) => {
           if ((e.target as HTMLElement).closest('button')) return;
           handleTitleBarMouseDown(e);
         }}
       >
-        <div className="flex items-center gap-2.5">
-          <span className="text-primary transition-transform duration-200 hover:scale-110">{icon}</span>
-          <span className="text-sm font-medium text-foreground/90 select-none">{title}</span>
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+          <span className="text-primary transition-transform duration-200 hover:scale-110 shrink-0">{icon}</span>
+          <span className="text-xs sm:text-sm font-medium text-foreground/90 select-none truncate">{title}</span>
         </div>
         
         {/* Window Controls */}
-        <div className="flex items-center gap-1 relative z-50">
-          <button
-            type="button"
-            onClick={handleMinimize}
-            className={cn(
-              'w-9 h-7 flex items-center justify-center rounded-md',
-              'transition-all duration-200 ease-out',
-              'hover:bg-muted active:scale-95',
-              'group'
-            )}
-          >
-            <Minus className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </button>
-          <button
-            type="button"
-            onClick={handleMaximize}
-            className={cn(
-              'w-9 h-7 flex items-center justify-center rounded-md',
-              'transition-all duration-200 ease-out',
-              'hover:bg-muted active:scale-95',
-              'group'
-            )}
-          >
-            {isMaximized ? (
-              <Copy className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
-            ) : (
-              <Square className="w-2.5 h-2.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            )}
-          </button>
+        <div className="flex items-center gap-0.5 sm:gap-1 relative z-50 shrink-0">
+          {!isMobile && (
+            <button
+              type="button"
+              onClick={handleMinimize}
+              className={cn(
+                'w-8 h-7 sm:w-9 sm:h-7 flex items-center justify-center rounded-md',
+                'transition-all duration-200 ease-out',
+                'hover:bg-muted active:scale-95',
+                'group'
+              )}
+            >
+              <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </button>
+          )}
+          {!isMobile && (
+            <button
+              type="button"
+              onClick={handleMaximize}
+              className={cn(
+                'w-8 h-7 sm:w-9 sm:h-7 flex items-center justify-center rounded-md',
+                'transition-all duration-200 ease-out',
+                'hover:bg-muted active:scale-95',
+                'group'
+              )}
+            >
+              {isMaximized ? (
+                <Copy className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
+              ) : (
+                <Square className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={handleClose}
             className={cn(
-              'w-9 h-7 flex items-center justify-center rounded-md',
+              'w-8 h-7 sm:w-9 sm:h-7 flex items-center justify-center rounded-md',
               'transition-all duration-200 ease-out',
               'hover:bg-destructive active:scale-95',
               'group'
             )}
           >
-            <X className="w-3.5 h-3.5 text-muted-foreground group-hover:text-destructive-foreground transition-colors" />
+            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground group-hover:text-destructive-foreground transition-colors" />
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-5 overflow-y-auto bg-background">
+      <div className="flex-1 p-3 sm:p-5 overflow-y-auto bg-background">
         {children}
       </div>
 
-      {/* Resize Handles (only when not maximized) */}
-      {!isMaximized && (
+      {/* Resize Handles (only when not maximized and not mobile) */}
+      {!shouldBeMaximized && !isMobile && (
         <>
           {/* Corners */}
           <div

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Briefcase, FileText, Mail, Calculator, StickyNote, Settings, Gamepad2 } from 'lucide-react';
+import { User, Briefcase, FileText, Mail, Calculator, StickyNote, Settings, Gamepad2, Joystick } from 'lucide-react';
 import { DesktopIcon } from './DesktopIcon';
 import { Window } from './Window';
 import { Taskbar } from './Taskbar';
@@ -12,22 +12,27 @@ import { CalculatorWindow } from '@/components/windows/CalculatorWindow';
 import { NotepadWindow } from '@/components/windows/NotepadWindow';
 import { SettingsWindow } from '@/components/windows/SettingsWindow';
 import { MemoryGame } from '@/components/windows/MemoryGameWindow';
+import { SnakeGame } from '@/components/windows/SnakeGameWindow';
 import { useWindowManager, WindowId } from '@/hooks/useWindowManager';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import wallpaper from '@/assets/wallpaper-light.jpg';
 
 const desktopIcons = [
-  { id: 'about' as WindowId, icon: <User className="w-10 h-10" />, label: 'About Me', position: { x: 20, y: 20 } },
-  { id: 'projects' as WindowId, icon: <Briefcase className="w-10 h-10" />, label: 'Projects', position: { x: 20, y: 110 } },
-  { id: 'resume' as WindowId, icon: <FileText className="w-10 h-10" />, label: 'Resume', position: { x: 20, y: 200 } },
-  { id: 'contact' as WindowId, icon: <Mail className="w-10 h-10" />, label: 'Contact', position: { x: 20, y: 290 } },
-  { id: 'calculator' as WindowId, icon: <Calculator className="w-10 h-10" />, label: 'Calculator', position: { x: 20, y: 380 } },
-  { id: 'notepad' as WindowId, icon: <StickyNote className="w-10 h-10" />, label: 'Notepad', position: { x: 20, y: 470 } },
-  { id: 'game' as WindowId, icon: <Gamepad2 className="w-10 h-10" />, label: 'Memory Game', position: { x: 110, y: 20 } },
+  { id: 'about' as WindowId, icon: <User className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'About Me', position: { x: 20, y: 20 } },
+  { id: 'projects' as WindowId, icon: <Briefcase className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Projects', position: { x: 20, y: 100 } },
+  { id: 'resume' as WindowId, icon: <FileText className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Resume', position: { x: 20, y: 180 } },
+  { id: 'contact' as WindowId, icon: <Mail className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Contact', position: { x: 20, y: 260 } },
+  { id: 'calculator' as WindowId, icon: <Calculator className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Calculator', position: { x: 20, y: 340 } },
+  { id: 'notepad' as WindowId, icon: <StickyNote className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Notepad', position: { x: 20, y: 420 } },
+  { id: 'game' as WindowId, icon: <Gamepad2 className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Memory', position: { x: 100, y: 20 } },
+  { id: 'snake' as WindowId, icon: <Joystick className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Snake', position: { x: 100, y: 100 } },
 ];
 
 export function Desktop() {
   const [isBooted, setIsBooted] = useState(false);
   const [userName, setUserName] = useState('');
+  const isMobile = useIsMobile();
 
   const {
     windows,
@@ -55,6 +60,7 @@ export function Desktop() {
       notepad: { title: 'Notepad', icon: <StickyNote className="w-4 h-4" />, content: <NotepadWindow /> },
       settings: { title: 'Settings', icon: <Settings className="w-4 h-4" />, content: <SettingsWindow userName={userName} /> },
       game: { title: 'Memory Game', icon: <Gamepad2 className="w-4 h-4" />, content: <MemoryGame onClose={() => closeWindow('game')} /> },
+      snake: { title: 'Snake Game', icon: <Joystick className="w-4 h-4" />, content: <SnakeGame onClose={() => closeWindow('snake')} /> },
     };
     return configs[id];
   };
@@ -64,15 +70,18 @@ export function Desktop() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] relative overflow-hidden">
       {/* Wallpaper Background */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${wallpaper})` }}
       />
 
-      {/* Desktop Icons */}
-      <div className="relative z-10 inset-0 pb-12">
+      {/* Desktop Icons - Grid layout on mobile */}
+      <div className={cn(
+        "relative z-10 pb-14 sm:pb-12",
+        isMobile ? "grid grid-cols-4 gap-1 p-2" : ""
+      )}>
         {desktopIcons.map((item) => (
           <DesktopIcon
             key={item.id}
@@ -80,6 +89,7 @@ export function Desktop() {
             label={item.label}
             initialPosition={item.position}
             onClick={() => openWindow(item.id)}
+            isMobile={isMobile}
           />
         ))}
       </div>
@@ -95,7 +105,7 @@ export function Desktop() {
             icon={config.icon}
             isOpen={windowState.isOpen}
             isMinimized={windowState.isMinimized}
-            isMaximized={windowState.isMaximized}
+            isMaximized={windowState.isMaximized || isMobile}
             zIndex={windowState.zIndex}
             position={windowState.position}
             onClose={() => closeWindow(id)}
@@ -103,6 +113,7 @@ export function Desktop() {
             onMaximize={() => toggleMaximize(id)}
             onFocus={() => focusWindow(id)}
             onPositionChange={(pos) => updatePosition(id, pos)}
+            isMobile={isMobile}
           >
             {config.content}
           </Window>

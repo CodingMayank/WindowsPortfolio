@@ -22,9 +22,9 @@ export function ResumeWindow() {
   };
 
   return (
-    <div className="flex flex-col h-full gap-4">
+    <div className="flex flex-col h-full gap-2 md:gap-4 overflow-hidden">
       {/* Action Bar */}
-      <div className="flex items-center justify-between px-2">
+      <div className="flex items-center justify-between px-2 shrink-0">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <FileText className="w-4 h-4" />
           <span>Resume.pdf</span>
@@ -51,7 +51,7 @@ export function ResumeWindow() {
       </div>
 
       {/* PDF Viewer */}
-      <div className="flex-1 rounded-lg overflow-hidden border border-border bg-muted/30 min-h-[400px]">
+      <div className="flex-1 rounded-lg overflow-hidden border border-border bg-muted/30 min-h-0">
         {hasError ? (
           <div className="flex flex-col items-center justify-center h-full py-8 space-y-4">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">

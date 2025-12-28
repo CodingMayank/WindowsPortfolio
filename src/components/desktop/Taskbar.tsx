@@ -58,73 +58,100 @@ export function Taskbar({ openWindows, onWindowClick, onOpenApp, userName }: Tas
       {/* Start Menu */}
       <div
         className={cn(
-          'fixed bottom-12 left-1 sm:left-2 w-[calc(100vw-8px)] sm:w-72 max-w-80 bg-background/95 backdrop-blur-xl rounded-lg shadow-2xl z-[60]',
-          'transition-all duration-200 ease-out origin-bottom-left border border-border/50',
-          isStartOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 pointer-events-none'
+          'fixed bottom-14 left-2 sm:left-3 w-[calc(100vw-16px)] sm:w-80 max-w-96',
+          'bg-background/95 backdrop-blur-2xl rounded-xl',
+          'shadow-2xl shadow-black/30 z-[60]',
+          'transition-all duration-300 ease-out origin-bottom-left',
+          'border border-border/40',
+          isStartOpen 
+            ? 'opacity-100 scale-100 translate-y-0' 
+            : 'opacity-0 scale-95 translate-y-4 pointer-events-none'
         )}
       >
         {/* User Section */}
-        <div className="p-3 border-b border-border flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10">
+        <div className="p-4 border-b border-border/30 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-primary/10 ring-2 ring-primary/20">
             <Lottie 
               animationData={profileAnimation} 
               loop={true}
               className="w-full h-full scale-150"
             />
           </div>
-          <span className="font-medium text-foreground text-sm">{userName}</span>
+          <div>
+            <span className="font-semibold text-foreground text-sm block">{userName}</span>
+            <span className="text-[11px] text-muted-foreground">Welcome back</span>
+          </div>
         </div>
 
         {/* Apps Grid */}
-        <div className="p-2 sm:p-3 grid grid-cols-4 sm:grid-cols-3 gap-1">
-          {startMenuApps.map((app) => (
+        <div className="p-3 grid grid-cols-4 sm:grid-cols-3 gap-1.5">
+          {startMenuApps.map((app, index) => (
             <button
               key={app.id}
               onClick={() => handleAppClick(app.id)}
               className={cn(
-                'flex flex-col items-center gap-1 sm:gap-1.5 p-2 sm:p-2.5 rounded-md',
-                'hover:bg-muted active:bg-muted/80 transition-all duration-150 active:scale-95',
+                'flex flex-col items-center gap-1.5 p-2.5 sm:p-3 rounded-xl',
+                'hover:bg-muted active:bg-muted/80',
+                'transition-all duration-200 ease-out',
+                'active:scale-90',
                 'group'
               )}
+              style={{ animationDelay: `${index * 30}ms` }}
             >
-              <div className="text-primary transition-transform duration-150 group-hover:scale-110">
+              <div className={cn(
+                'text-primary transition-all duration-200',
+                'group-hover:scale-110 group-hover:text-primary/80'
+              )}>
                 {app.icon}
               </div>
-              <span className="text-[9px] sm:text-[10px] text-muted-foreground group-hover:text-foreground text-center leading-tight transition-colors">{app.label}</span>
+              <span className="text-[10px] sm:text-[11px] text-muted-foreground group-hover:text-foreground text-center leading-tight transition-colors font-medium">
+                {app.label}
+              </span>
             </button>
           ))}
         </div>
 
         {/* Power Button */}
-        <div className="p-2 border-t border-border">
+        <div className="p-3 border-t border-border/30">
           <button
             onClick={() => window.location.reload()}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-150 active:scale-[0.98]"
+            className={cn(
+              'flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl',
+              'hover:bg-destructive/10 text-muted-foreground hover:text-destructive',
+              'transition-all duration-200 active:scale-[0.98]'
+            )}
           >
             <Power className="w-4 h-4" />
-            <span className="text-sm">Restart</span>
+            <span className="text-sm font-medium">Restart</span>
           </button>
         </div>
       </div>
 
       {/* Taskbar */}
-      <div className="fixed bottom-0 left-0 right-0 h-12 bg-background/80 backdrop-blur-xl z-50 flex items-center justify-between px-1 border-t border-border/30 safe-area-pb">
+      <div className={cn(
+        'fixed bottom-0 left-0 right-0 h-12 sm:h-14',
+        'bg-background/80 backdrop-blur-2xl z-50',
+        'flex items-center justify-between px-1 sm:px-2',
+        'border-t border-border/20',
+        'pb-[env(safe-area-inset-bottom,0px)]'
+      )}>
         {/* Start Button + Open Windows */}
         <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-hide">
           {/* Start Button */}
           <button
             onClick={() => setIsStartOpen(!isStartOpen)}
             className={cn(
-              'flex items-center justify-center w-11 h-11 transition-all duration-150 shrink-0',
-              'hover:bg-muted active:scale-95',
-              isStartOpen && 'bg-muted'
+              'flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14',
+              'transition-all duration-200 ease-out shrink-0 rounded-lg',
+              'hover:bg-muted/60 active:scale-90',
+              isStartOpen && 'bg-muted/80'
             )}
           >
-            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
-              <div className="bg-primary rounded-[1px]" />
-              <div className="bg-primary rounded-[1px]" />
-              <div className="bg-primary rounded-[1px]" />
-              <div className="bg-primary rounded-[1px]" />
+            <div className="grid grid-cols-2 gap-0.5 w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:rotate-45">
+              <div className="bg-primary rounded-sm transition-colors" />
+              <div className="bg-primary rounded-sm transition-colors" />
+              <div className="bg-primary rounded-sm transition-colors" />
+              <div className="bg-primary rounded-sm transition-colors" />
             </div>
           </button>
 
@@ -134,26 +161,34 @@ export function Taskbar({ openWindows, onWindowClick, onOpenApp, userName }: Tas
               key={window.id}
               onClick={() => onWindowClick(window.id)}
               className={cn(
-                'flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 transition-all duration-150 shrink-0',
-                'hover:bg-muted active:scale-[0.98]',
+                'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg mx-0.5',
+                'transition-all duration-200 ease-out shrink-0',
+                'hover:bg-muted/60 active:scale-95',
                 window.isMinimized
-                  ? 'text-muted-foreground'
-                  : 'bg-muted border-b-2 border-primary'
+                  ? 'text-muted-foreground bg-transparent'
+                  : 'bg-muted/50 border-b-2 border-primary shadow-sm'
               )}
             >
-              <span className="text-primary">{windowIcons[window.id]?.icon}</span>
-              <span className="text-xs font-medium text-foreground hidden sm:inline max-w-20 truncate">{windowIcons[window.id]?.label}</span>
+              <span className="text-primary transition-transform duration-200 hover:scale-110">
+                {windowIcons[window.id]?.icon}
+              </span>
+              <span className="text-xs font-medium text-foreground hidden sm:inline max-w-24 truncate">
+                {windowIcons[window.id]?.label}
+              </span>
             </button>
           ))}
         </div>
 
         {/* System Tray */}
         <div className="flex items-center shrink-0">
-          <button className="p-2 hover:bg-muted transition-all duration-150 active:scale-95 hidden sm:block">
-            <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
+          <button className="p-2.5 hover:bg-muted/60 transition-all duration-200 active:scale-95 rounded-lg hidden sm:block">
+            <ChevronUp className="w-4 h-4 text-muted-foreground" />
           </button>
-          <div className="flex flex-col items-end text-[10px] sm:text-[11px] text-muted-foreground px-2 sm:px-3 py-1 hover:bg-muted transition-colors cursor-default">
-            <span>{timeStr}</span>
+          <div className={cn(
+            'flex flex-col items-end text-[10px] sm:text-[11px] text-muted-foreground',
+            'px-3 sm:px-4 py-1.5 hover:bg-muted/40 rounded-lg transition-colors cursor-default'
+          )}>
+            <span className="font-medium">{timeStr}</span>
             <span className="hidden sm:inline">{dateStr}</span>
           </div>
         </div>

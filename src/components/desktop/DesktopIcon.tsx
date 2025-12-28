@@ -4,32 +4,64 @@ import { cn } from '@/lib/utils';
 interface DesktopIconProps {
   icon: React.ReactNode;
   label: string;
-  onClick: () => void;
   initialPosition: { x: number; y: number };
+  onClick: () => void;
   isMobile?: boolean;
+  animationDelay?: number;
 }
 
-export function DesktopIcon({ icon, label, onClick, initialPosition, isMobile }: DesktopIconProps) {
+export function DesktopIcon({ icon, label, initialPosition, onClick, isMobile, animationDelay = 0 }: DesktopIconProps) {
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [hasMoved, setHasMoved] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
-  const iconRef = useRef<HTMLButtonElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+  const clickStart = useRef<{ x: number; y: number; time: number } | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), animationDelay);
+    return () => clearTimeout(timer);
+  }, [animationDelay]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isMobile) return;
+    clickStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+    dragOffset.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
+    setIsDragging(true);
+    setIsPressed(true);
+  };
 
   useEffect(() => {
     if (!isDragging || isMobile) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      setHasMoved(true);
-      setPosition({
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y,
-      });
+      const dx = Math.abs(e.clientX - (clickStart.current?.x || 0));
+      const dy = Math.abs(e.clientY - (clickStart.current?.y || 0));
+      if (dx > 5 || dy > 5) {
+        setPosition({
+          x: e.clientX - dragOffset.current.x,
+          y: e.clientY - dragOffset.current.y,
+        });
+      }
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
       setIsDragging(false);
+      setIsPressed(false);
+      
+      if (clickStart.current) {
+        const dx = Math.abs(e.clientX - clickStart.current.x);
+        const dy = Math.abs(e.clientY - clickStart.current.y);
+        const dt = Date.now() - clickStart.current.time;
+        
+        if (dx < 5 && dy < 5 && dt < 300) {
+          onClick();
+        }
+      }
+      clickStart.current = null;
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -39,80 +71,79 @@ export function DesktopIcon({ icon, label, onClick, initialPosition, isMobile }:
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, dragOffset, isMobile]);
+  }, [isDragging, onClick, isMobile]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (isMobile) return;
-    if (iconRef.current) {
-      const rect = iconRef.current.getBoundingClientRect();
-      setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
-    }
-    setIsDragging(true);
-    setHasMoved(false);
+  const handleTouchStart = () => {
+    setIsPressed(true);
   };
 
-  const handleClick = () => {
-    if (!hasMoved || isMobile) {
-      onClick();
-    }
+  const handleTouchEnd = () => {
+    setIsPressed(false);
+    onClick();
   };
 
-  // Mobile layout - static grid items
+  // Mobile layout - grid item
   if (isMobile) {
     return (
       <button
-        onClick={onClick}
-        onTouchStart={() => setIsPressed(true)}
-        onTouchEnd={() => setIsPressed(false)}
         className={cn(
-          'flex flex-col items-center gap-1.5 p-2 rounded-xl',
-          'active:bg-white/20 transition-all duration-150',
-          'focus:outline-none select-none',
-          isPressed && 'scale-95 bg-white/10'
+          'flex flex-col items-center justify-center gap-1 p-2 rounded-lg',
+          'transition-all duration-150 ease-out',
+          'active:scale-95 active:bg-background/20',
+          isPressed && 'scale-95 bg-background/20',
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         )}
+        onClick={onClick}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        style={{ touchAction: 'manipulation' }}
       >
         <div className={cn(
-          "w-12 h-12 flex items-center justify-center text-white",
-          "transition-transform duration-150",
-          isPressed && "scale-110"
+          'p-2.5 rounded-lg bg-background/50 backdrop-blur-md',
+          'border border-border/20',
+          'transition-transform duration-150',
+          'text-foreground/80'
         )}>
           {icon}
         </div>
-        <span className="text-[10px] text-white text-center font-medium leading-tight drop-shadow-md line-clamp-2">
+        <span className="text-[10px] font-medium text-primary-foreground dark:text-foreground text-center leading-tight max-w-[56px] truncate drop-shadow-sm">
           {label}
         </span>
       </button>
     );
   }
 
-  // Desktop layout - absolute positioning with drag
+  // Desktop layout - absolute positioned, draggable
   return (
-    <button
-      ref={iconRef}
-      onMouseDown={handleMouseDown}
-      onClick={handleClick}
+    <div
       className={cn(
-        'absolute flex flex-col items-center gap-2 p-3 rounded-lg w-20',
-        'hover:bg-white/10 active:bg-white/20 transition-all duration-150',
-        'focus:outline-none focus:ring-1 focus:ring-white/30',
-        'select-none group',
-        isDragging && 'cursor-grabbing z-50'
+        'absolute flex flex-col items-center gap-1 p-2 rounded-lg w-[72px]',
+        'cursor-pointer select-none',
+        'transition-all duration-150 ease-out',
+        'hover:bg-background/30',
+        'group',
+        isPressed && 'scale-95 bg-background/20',
+        isVisible ? 'opacity-100' : 'opacity-0'
       )}
-      style={{
-        left: position.x,
-        top: position.y,
-        cursor: isDragging ? 'grabbing' : 'grab',
-      }}
+      style={{ left: position.x, top: position.y }}
+      onMouseDown={handleMouseDown}
     >
-      <div className="w-12 h-12 flex items-center justify-center text-white pointer-events-none transition-transform duration-150 group-hover:scale-110">
+      <div className={cn(
+        'p-2 rounded-lg transition-all duration-150',
+        'bg-background/40 backdrop-blur-sm',
+        'border border-border/20',
+        'group-hover:bg-background/60 group-hover:scale-105',
+        'text-foreground/70 group-hover:text-foreground/90'
+      )}>
         {icon}
       </div>
-      <span className="text-xs text-white text-center font-medium leading-tight drop-shadow-md pointer-events-none">
+      <span className={cn(
+        'text-[11px] font-medium text-center leading-tight',
+        'text-primary-foreground dark:text-foreground drop-shadow-sm',
+        'group-hover:opacity-90 transition-opacity'
+      )}>
         {label}
       </span>
-    </button>
+    </div>
   );
 }

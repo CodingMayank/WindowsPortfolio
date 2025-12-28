@@ -37,10 +37,58 @@ export function BootScreen({ onComplete }: BootScreenProps) {
     return () => clearInterval(timer);
   }, []);
 
+  const playLoginSound = async () => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const audioContext: AudioContext = new AudioCtx();
+
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+
+    // Softer, soothing chime (short, low volume)
+    const master = audioContext.createGain();
+    master.gain.setValueAtTime(0.06, audioContext.currentTime);
+
+    const filter = audioContext.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1800, audioContext.currentTime);
+    filter.Q.setValueAtTime(0.7, audioContext.currentTime);
+
+    master.connect(filter);
+    filter.connect(audioContext.destination);
+
+    const now = audioContext.currentTime;
+    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+
+    notes.forEach((freq, i) => {
+      const t0 = now + i * 0.06;
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t0);
+
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(1, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.55);
+
+      osc.connect(gain);
+      gain.connect(master);
+
+      osc.start(t0);
+      osc.stop(t0 + 0.6);
+    });
+
+    window.setTimeout(() => {
+      audioContext.close().catch(() => {});
+    }, 900);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (userName.trim()) {
-      onComplete(userName.trim());
+      playLoginSound();
+      setTimeout(() => onComplete(userName.trim()), 200);
     }
   };
 

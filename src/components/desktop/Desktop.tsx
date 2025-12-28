@@ -19,14 +19,14 @@ import { cn } from '@/lib/utils';
 import wallpaper from '@/assets/wallpaper-light.jpg';
 
 const desktopIcons = [
-  { id: 'about' as WindowId, icon: <User className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'About Me', position: { x: 20, y: 20 } },
-  { id: 'projects' as WindowId, icon: <Briefcase className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Projects', position: { x: 20, y: 100 } },
-  { id: 'resume' as WindowId, icon: <FileText className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Resume', position: { x: 20, y: 180 } },
-  { id: 'contact' as WindowId, icon: <Mail className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Contact', position: { x: 20, y: 260 } },
-  { id: 'calculator' as WindowId, icon: <Calculator className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Calculator', position: { x: 20, y: 340 } },
-  { id: 'notepad' as WindowId, icon: <StickyNote className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Notepad', position: { x: 20, y: 420 } },
-  { id: 'game' as WindowId, icon: <Gamepad2 className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Memory', position: { x: 100, y: 20 } },
-  { id: 'snake' as WindowId, icon: <Joystick className="w-8 h-8 sm:w-10 sm:h-10" />, label: 'Snake', position: { x: 100, y: 100 } },
+  { id: 'about' as WindowId, icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'About Me', position: { x: 20, y: 20 } },
+  { id: 'projects' as WindowId, icon: <Briefcase className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Projects', position: { x: 20, y: 95 } },
+  { id: 'resume' as WindowId, icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Resume', position: { x: 20, y: 170 } },
+  { id: 'contact' as WindowId, icon: <Mail className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Contact', position: { x: 20, y: 245 } },
+  { id: 'calculator' as WindowId, icon: <Calculator className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Calculator', position: { x: 20, y: 320 } },
+  { id: 'notepad' as WindowId, icon: <StickyNote className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Notepad', position: { x: 20, y: 395 } },
+  { id: 'game' as WindowId, icon: <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Memory', position: { x: 95, y: 20 } },
+  { id: 'snake' as WindowId, icon: <Joystick className="w-5 h-5 sm:w-6 sm:h-6" />, label: 'Snake', position: { x: 95, y: 95 } },
 ];
 
 export function Desktop() {
@@ -70,19 +70,24 @@ export function Desktop() {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] relative overflow-hidden select-none">
       {/* Wallpaper Background */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[2000ms]"
         style={{ backgroundImage: `url(${wallpaper})` }}
       />
+      
+      {/* Subtle wallpaper overlay for depth */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/20" />
 
       {/* Desktop Icons - Grid layout on mobile */}
       <div className={cn(
-        "relative z-10 pb-14 sm:pb-12",
-        isMobile ? "grid grid-cols-4 gap-1 p-2" : ""
+        "relative z-0 pb-16 sm:pb-14",
+        isMobile 
+          ? "grid grid-cols-4 gap-2 p-3 pt-[env(safe-area-inset-top,12px)]" 
+          : "p-4"
       )}>
-        {desktopIcons.map((item) => (
+        {desktopIcons.map((item, index) => (
           <DesktopIcon
             key={item.id}
             icon={item.icon}
@@ -90,6 +95,7 @@ export function Desktop() {
             initialPosition={item.position}
             onClick={() => openWindow(item.id)}
             isMobile={isMobile}
+            animationDelay={index * 50}
           />
         ))}
       </div>

@@ -73,13 +73,14 @@ export function DesktopIcon({ icon, label, initialPosition, onClick, isMobile, a
     };
   }, [isDragging, onClick, isMobile]);
 
-  const handleTouchStart = () => {
+  const handlePointerDown = () => {
+    if (!isMobile) return;
     setIsPressed(true);
   };
 
-  const handleTouchEnd = () => {
+  const handlePointerUp = () => {
+    if (!isMobile) return;
     setIsPressed(false);
-    onClick();
   };
 
   // Mobile layout - grid item
@@ -94,8 +95,9 @@ export function DesktopIcon({ icon, label, initialPosition, onClick, isMobile, a
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         )}
         onClick={onClick}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         style={{ touchAction: 'manipulation' }}
       >
         <div className={cn(

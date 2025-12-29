@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 export type WindowId = 'about' | 'projects' | 'resume' | 'contact' | 'calculator' | 'notepad' | 'settings' | 'game' | 'snake';
 
@@ -26,14 +26,22 @@ const initialWindows: Record<WindowId, WindowState> = {
 export function useWindowManager() {
   const [windows, setWindows] = useState<Record<WindowId, WindowState>>(initialWindows);
   const [topZIndex, setTopZIndex] = useState(1);
+  const topZIndexRef = useRef(topZIndex);
+
+  useEffect(() => {
+    topZIndexRef.current = topZIndex;
+  }, [topZIndex]);
 
   const openWindow = useCallback((id: WindowId) => {
-    setTopZIndex((prev) => prev + 1);
+    const nextZIndex = topZIndexRef.current + 1;
+    topZIndexRef.current = nextZIndex;
+    setTopZIndex(nextZIndex);
+
     setWindows((prev) => ({
       ...prev,
-      [id]: { ...prev[id], isOpen: true, isMinimized: false, zIndex: topZIndex + 1 },
+      [id]: { ...prev[id], isOpen: true, isMinimized: false, zIndex: nextZIndex },
     }));
-  }, [topZIndex]);
+  }, []);
 
   const closeWindow = useCallback((id: WindowId) => {
     setWindows((prev) => ({
@@ -57,12 +65,15 @@ export function useWindowManager() {
   }, []);
 
   const focusWindow = useCallback((id: WindowId) => {
-    setTopZIndex((prev) => prev + 1);
+    const nextZIndex = topZIndexRef.current + 1;
+    topZIndexRef.current = nextZIndex;
+    setTopZIndex(nextZIndex);
+
     setWindows((prev) => ({
       ...prev,
-      [id]: { ...prev[id], isMinimized: false, zIndex: topZIndex + 1 },
+      [id]: { ...prev[id], isMinimized: false, zIndex: nextZIndex },
     }));
-  }, [topZIndex]);
+  }, []);
 
   const updatePosition = useCallback((id: WindowId, position: { x: number; y: number }) => {
     setWindows((prev) => ({

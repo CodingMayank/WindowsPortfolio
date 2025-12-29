@@ -159,7 +159,8 @@ export function Window({
       {/* Background overlay when maximized - covers desktop icons (but not the taskbar) */}
       {shouldBeMaximized && (
         <div
-          className="fixed inset-x-0 bg-background"
+          className="fixed inset-x-0 bg-background pointer-events-none"
+          aria-hidden="true"
           style={{ zIndex: zIndex, top: topOffset as any, bottom: bottomOffset }}
         />
       )}
@@ -218,7 +219,6 @@ export function Window({
                 <button
                   type="button"
                   onClick={handleMinimize}
-                  onTouchEnd={handleMinimize}
                   className={cn(
                     'w-9 h-8 sm:w-10 sm:h-8 flex items-center justify-center rounded-lg',
                     'transition-all duration-200 ease-out',
@@ -231,7 +231,6 @@ export function Window({
                 <button
                   type="button"
                   onClick={handleMaximize}
-                  onTouchEnd={handleMaximize}
                   className={cn(
                     'w-9 h-8 sm:w-10 sm:h-8 flex items-center justify-center rounded-lg',
                     'transition-all duration-200 ease-out',
@@ -250,7 +249,6 @@ export function Window({
             <button
               type="button"
               onClick={handleClose}
-              onTouchEnd={handleClose}
               className={cn(
                 'w-9 h-8 sm:w-10 sm:h-8 flex items-center justify-center rounded-lg',
                 'transition-all duration-200 ease-out',

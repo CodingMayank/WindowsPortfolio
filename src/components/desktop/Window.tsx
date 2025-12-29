@@ -268,9 +268,9 @@ export function Window({
         </div>
 
         {/* Content with subtle inner shadow */}
-        <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-background relative">
-          <div className="absolute inset-0 pointer-events-none shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)]" />
-          <div className="relative z-10 h-full">
+        <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-background relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] z-0" />
+          <div className="relative z-10 h-full overflow-y-auto">
             {children}
           </div>
         </div>
